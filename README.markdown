@@ -1,6 +1,8 @@
 BackupPC_archiveHost_s3
 =======================
 
+**Note: This module has been modified for Google Cloud Storage!**
+
 This is a Python script that acts as an interface between
 [BackupPC](http://backuppc.sourceforge.net/) and
 [Amazon S3](http://aws.amazon.com/s3/).  It uses BackupPC's

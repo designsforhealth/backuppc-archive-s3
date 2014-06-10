@@ -29,7 +29,7 @@ import secrets
 import sys
 import time
 
-from boto.s3.connection import S3Connection
+from boto.gs.connection import GSConnection
 
 from collections import defaultdict
 from math import log10
@@ -40,19 +40,20 @@ class BackupManager:
 
     def __init__(self, accesskey, sharedkey):
         self._accesskey = accesskey
-        self._connection = S3Connection(accesskey, sharedkey)
+        self._connection = GSConnection(accesskey, sharedkey)
 
         self._buckets = None
         self._bucketbackups = {}
         self._backups = None
 
     def _generate_backup_buckets(self):
-        bucket_prefix = self._accesskey.lower() + '-bkup-'
+        bucket_prefix = 'bkup-'
+        bucket_suffix = '-' + self._accesskey.lower()
         buckets = self._connection.get_all_buckets()
         self._buckets = []
 
         for bucket in buckets:
-            if bucket.name.startswith(bucket_prefix):
+            if bucket.name.startswith(bucket_prefix) and bucket.name.endswith(bucket_suffix):
                 self._buckets.append(bucket)
 
     @property
@@ -103,7 +104,7 @@ class BackupManager:
             hostname = '.'.join(keyparts)
 
             lastmod = time.strptime(key.last_modified,
-                                    '%Y-%m-%dT%H:%M:%S.000Z')
+                                    '%Y-%m-%dT%H:%M:%S.%fZ')
 
             if hostname in backups.keys():
                 if not backupnum in backups[hostname].keys():

@@ -42,8 +42,8 @@ import time
 from multiprocessing import Process, Queue, cpu_count
 from subprocess import *
 
-from boto.s3.connection import S3Connection
-from boto.s3.key import Key
+from boto.gs.connection import GSConnection
+from boto.gs.key import Key
 import boto.exception
 
 import logging
@@ -54,7 +54,7 @@ import secrets
 logger = logging.getLogger(__name__)
 
 sysloghandler = logging.handlers.SysLogHandler('/dev/log',
-                facility=logging.handlers.SysLogHandler.LOG_DAEMON)
+                                               facility=logging.handlers.SysLogHandler.LOG_DAEMON)
 syslogformatter = logging.Formatter('%(filename)s: %(levelname)s: %(message)s')
 sysloghandler.setFormatter(syslogformatter)
 logger.addHandler(sysloghandler)
@@ -103,11 +103,11 @@ def encrypt_file(filename, key, compress='/bin/cat'):
         raise RuntimeError('output file does not exist: %s.gpg' % filename)
 
 def open_s3(accesskey, sharedkey, host):
-    conn = S3Connection(accesskey, sharedkey, is_secure=True)
-    mybucketname = (accesskey + '-bkup-' + host).lower()
+    conn = GSConnection(accesskey, sharedkey, is_secure=True)
+    mybucketname = ('bkup-' + host + '-' + accesskey).lower()
     try:
         bucket = conn.get_bucket(mybucketname)
-    except boto.exception.S3ResponseError:
+    except boto.exception.GSResponseError:
         logger.info('open_s3: creating new bucket %s' % mybucketname)
         bucket = conn.create_bucket(mybucketname)
     bucket.set_acl('private')
@@ -183,7 +183,7 @@ def sending_worker(in_q, out_q, accesskey, sharedkey, host):
                 key.set_acl('private')
                 key.close()
                 done = True
-            except (boto.exception.S3ResponseError, socket.error, VerifyError), e:
+            except (boto.exception.GSResponseError, socket.error, VerifyError), e:
                 retry_count += 1
                 sleeptime = 2**retry_count
                 logger.error('sending_worker: exception %s, retrying in %i seconds (%i/%i)', e, sleeptime, retry_count, max_retries)
@@ -250,7 +250,7 @@ if __name__ == '__main__':
         'gpg_queue': gpg_queue,
         'send_queue': send_queue,
         'unlink_queue': unlink_queue,
-    }
+        }
 
     # Is there already evidence of this having been done before?
     if glob.glob('%s/%s.*.tar.*' % (outLoc, host)):
@@ -327,8 +327,8 @@ if __name__ == '__main__':
     # Run again to send files to the relevant queue
     for i in sorted(glob.glob(fileglob)):
         if (secrets.gpgsymmetrickey
-                and not i.endswith('.gpg')
-                and not i.endswith('.COMPLETE')):
+            and not i.endswith('.gpg')
+            and not i.endswith('.COMPLETE')):
             # A tar file, unencrypted, needs encrypted.
             logger.debug("main: adding %s to gpg_queue", i)
             gpg_queue.put([i, secrets.gpgsymmetrickey, compPath])

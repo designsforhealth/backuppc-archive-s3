@@ -43,7 +43,7 @@
 
 use strict;
 no  utf8;
-use lib "/usr/share/backuppc/lib";
+use lib [ "/usr/share/backuppc/lib", "/usr/share/BackupPC/lib" ];
 use Getopt::Std;
 use BackupPC::Lib;
 

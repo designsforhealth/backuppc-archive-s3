@@ -1,11 +1,11 @@
 #!/usr/bin/perl
 #============================================================= -*-perl-*-
 #
-# BackupPC_pipeApi: get backup and archive info from BackupPC
+# BackupPC_archivePipeApi.pl: get backup and archive info from BackupPC
 #
 # DESCRIPTION
 #  
-#   Usage: BackupPC_pipeApi -a <archiveHost> [-h <host> -g]|[-G]
+#   Usage: BackupPC_archivePipeApi.pl -a <archiveHost> [-h <host> -g]|[-G]
 #
 #   Provides various functions for external integration with BackupPC
 #
